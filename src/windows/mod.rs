@@ -1,7 +1,7 @@
-use crate::{printer::{Printer, PrinterState}, shared::interface::PlatformPrinterGetters};
-use std::process::Command;
+use crate::{printer::{JobState, PrintJob, Printer, PrinterState}, shared::interface::{JobInfo2Getters, PlatformPrinterGetters}};
 
 mod winspool;
+mod util;
 
 /**
  * Get printers on windows using winspool
@@ -39,8 +39,28 @@ pub fn get_printers() -> Vec<Printer> {
  * Print on windows systems using winspool
  */
 pub fn print(printer_system_name: &str, file_path: &str, job_name: Option<&str>) -> Result<bool, String> {
+    //.arg("-print-settings").arg("paper=A4")
+    let mut command  = Command::new("src\\windows\\lib\\SumatraPDF-3.5.2-64.exe");
+    let status = command.arg("-silent")
+    .arg("-print-to")
+    .arg(printer_system_name)
+    .arg(file_path).spawn();
+ 
+    return if status.is_ok() {
+        Result::Ok(true)
+    } else {
+        Result::Err("failure to send document to printer".to_string())
+    }
+
+    /*let result = &winspool::print_file(printer_system_name, file_path, job_name);
+    return if result {
+        Result::Ok(true)
+    } else {
+        Result::Err("failure on send document to printer".to_string())
+    }*/
+
     // let result = lpr::add_job("123".as_bytes(), printer_system_name, job_name);
-    let job_name = job_name.unwrap_or(file_path);
+    /*let job_name = job_name.unwrap_or(file_path);
     let status = Command::new("powershell")
     .args(&[
         "-Command",
@@ -55,6 +75,76 @@ pub fn print(printer_system_name: &str, file_path: &str, job_name: Option<&str>)
         Result::Ok(true)
     } else {
         Result::Err("failure to send document to printer".to_string())
-    }
+    }*/
 }
+
+/**
+ * Get print queue on windows systems using winspool
+ */
+pub fn print_queue(printer_system_name: &str, myjobs: &i32, whichjobs: &i32) -> Vec<PrintJob>  { 
+    let queue_jobs= &winspool::enum_jobs(printer_system_name, myjobs, whichjobs);
+    let mut jobs: Vec<PrintJob> = vec![];
+    
+    //println!("job -->  {:?}", queue_jobs);
+    //use crate::shared::interface::JobGetters;
+    if queue_jobs.len() > 0 {
+        for job in queue_jobs {
+            let mut state = crate::printer::JobState::UNKNOWN;
+            let cups_state = job.get_state();
+
+            if cups_state == "3" {
+                state = JobState::PENDING;
+            }
+            
+            if cups_state == "4" {
+                state = JobState::HELD;
+            }
+
+            if cups_state == "5" {
+                state = JobState::PROCESSING;
+            }
+
+            if cups_state == "6" {
+                state = JobState::STOPPED;
+            }
+
+            if cups_state == "7" {
+                state = JobState::CANCELED;
+            }
+
+            if cups_state == "8" {
+                state = JobState::ABORTED;
+            }
+
+            if cups_state == "9" {
+                state = JobState::COMPLETED;
+            }
+           
+            jobs.push(Printer::from_queue_getters(job, state));
+        }
+    }
+    
+    return jobs;
+}
+
+
+pub fn cancel_job(_printer_system_name: &str, _job_id: i32) -> bool {
+    //return cups::cancel_job(printer_system_name, job_id);
+    return false;
+}
+
+/*
+pub fn get_job(_printer_system_name: &str, _job_id: i32) -> Vec<PrintJob> {
+   let winspool_job = &winspool::get_job(_printer_system_name,&_job_id);
+   let mut jobs: Vec<PrintJob> = vec![];
+   for job in winspool_job {
+     let job_state = job.get_state();
+     let mut state = crate::printer::JobState::UNKNOWN;
+
+     jobs.push(Printer::from_job_getters(job,state));
+   }
+
+   return jobs;
+} */
+
 

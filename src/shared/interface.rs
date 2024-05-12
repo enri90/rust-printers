@@ -17,3 +17,29 @@ pub trait PlatformPrinterGetters {
     fn get_state(&self) -> String;
 
 }
+
+pub trait JobGetters {
+
+    fn get_id(&self) -> String;
+
+    fn get_dest(&self) -> String;
+
+    fn get_title(&self) -> String;
+    
+    fn get_user(&self) -> String;
+
+    fn get_format(&self) -> String;
+
+    fn get_state(&self) -> String;
+
+    fn get_size(&self) -> String;
+
+    fn get_priority(&self) -> String;
+
+    fn get_creation_time(&self) -> String;
+
+    fn get_completed_time(&self) -> String;
+    
+    fn get_processing_time(&self) -> String;
+
+}

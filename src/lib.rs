@@ -24,7 +24,6 @@ use std::fs::File;
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-
 /// Printer and Job control
 pub mod printer;
 pub mod shared;
@@ -96,4 +95,33 @@ pub fn get_printer_by_name(name: &str) -> Option<printer::Printer> {
     });
 
     return opt.cloned();
+}
+
+
+
+pub fn print_queue(printer_system_name: &str, myjobs: i32, whichjobs: i32) -> Vec<printer::PrintJob>  {
+    #[cfg(target_family = "unix")]
+    return unix::print_queue(printer_system_name, myjobs, whichjobs);
+
+    #[cfg(target_family = "windows")]
+    return windows::print_queue(printer_system_name, myjobs, whichjobs);
+}
+
+pub fn cancel_job(printer_system_name: &str, job_id: i32) -> bool {
+    #[cfg(target_family = "unix")]
+    return unix::cancel_job(printer_system_name, job_id);
+
+    #[cfg(target_family = "windows")]
+    return windows::cancel_job(printer_system_name, job_id);
+}   
+
+
+pub fn get_last_error() -> String {
+    #[cfg(target_family = "unix")]
+    return unix::get_last_error();
+
+   #[cfg(target_family = "windows")]
+   return "".to_string()
+   // return windows::get_last_error();
+   
 }
