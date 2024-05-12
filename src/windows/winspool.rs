@@ -6,6 +6,7 @@ use std::path::Path;
 use std::{ ptr, slice };
 
 use super::util::jobinfo::JobInfo2w;
+use std::mem;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -265,7 +266,7 @@ pub fn enum_printers() -> Vec<PrinterInfo2w> {
 /**
  *  Return the job list of the printer
  */
-pub fn enum_jobs(printer_name: &str, first_job: &i32, no_jobs: &i32) -> Vec<JobInfo2w> {
+pub fn enum_jobs(printer_name: &str, first_job: i32, no_jobs: i32) -> Vec<JobInfo2w> {
     let mut tries = 0;
     let mut bytes_needed: c_ulong = 0;
     let mut count_jobs: c_ulong = 0;
@@ -287,8 +288,8 @@ pub fn enum_jobs(printer_name: &str, first_job: &i32, no_jobs: &i32) -> Vec<JobI
         } 
     }
 
-    let first_job_value = if *first_job != 0 { *first_job as c_ulong } else { 0 };
-    let no_jobs_value = if *no_jobs != 0 { *no_jobs as c_ulong } else { 0xFFFFFFFF };
+    let first_job_value = if first_job != 0 { first_job as c_ulong } else { 0 };
+    let no_jobs_value = if no_jobs != 0 { no_jobs as c_ulong } else { 0xFFFFFFFF };
 
     loop {
         if tries > 2 {

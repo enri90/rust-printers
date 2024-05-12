@@ -1,4 +1,5 @@
-use crate::{printer::{JobState, PrintJob, Printer, PrinterState}, shared::interface::{JobInfo2Getters, PlatformPrinterGetters}};
+use crate::{printer::{ JobState, PrintJob, Printer, PrinterState}, shared::interface::{JobGetters, PlatformPrinterGetters}};
+use std::process::Command;
 
 mod winspool;
 mod util;
@@ -81,12 +82,13 @@ pub fn print(printer_system_name: &str, file_path: &str, job_name: Option<&str>)
 /**
  * Get print queue on windows systems using winspool
  */
-pub fn print_queue(printer_system_name: &str, myjobs: &i32, whichjobs: &i32) -> Vec<PrintJob>  { 
+pub fn print_queue(printer_system_name: &str, myjobs: i32, whichjobs: i32) -> Vec<PrintJob>  { 
     let queue_jobs= &winspool::enum_jobs(printer_system_name, myjobs, whichjobs);
     let mut jobs: Vec<PrintJob> = vec![];
     
     //println!("job -->  {:?}", queue_jobs);
-    //use crate::shared::interface::JobGetters;
+    use crate::shared::interface::JobGetters;
+
     if queue_jobs.len() > 0 {
         for job in queue_jobs {
             let mut state = crate::printer::JobState::UNKNOWN;
@@ -120,7 +122,7 @@ pub fn print_queue(printer_system_name: &str, myjobs: &i32, whichjobs: &i32) -> 
                 state = JobState::COMPLETED;
             }
            
-            jobs.push(Printer::from_queue_getters(job, state));
+            jobs.push(Printer::from_job_getters(job, state));
         }
     }
     
