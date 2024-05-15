@@ -42,12 +42,10 @@ pub fn get_printers() -> Vec<Printer> {
  */
 pub fn print(printer_system_name: &str, file_path: &str, job_name: Option<&str>) -> Result<bool, String> {
     let dir: std::path::PathBuf = env::temp_dir();
-   
     let print = format!("-print-to {}", printer_system_name).to_owned();
-    let shell_command = format!("{}SumatraPDF.exe {} -silent {}", dir.display(), print, file_path);
-
-    //println!("{}", shell_command);
-    let status = Command::new("powershell").args([shell_command]).spawn();
+    let status = Command::new(&format!("{}SumatraPDF.exe", dir.display()))
+    .args(&[print, "-silent", file_path])
+    .spawn();
 
     return if status.is_ok() {
         Result::Ok(true)
@@ -59,8 +57,7 @@ pub fn print(printer_system_name: &str, file_path: &str, job_name: Option<&str>)
     //.arg("-print-settings").arg("paper=A4")
 
     /*let mut command  = Command::new("src\\windows\\lib\\SumatraPDF-3.5.2-64.exe");
-    let status = command.arg("-silent")
-    .arg("-print-to").arg(printer_system_name).arg(file_path).spawn();
+    let status = command.arg("-silent").arg("-print-to").arg(printer_system_name).arg(file_path).spawn();
  
     return if status.is_ok() {
         Result::Ok(true)
