@@ -40,18 +40,32 @@ pub fn get_printers() -> Vec<Printer> {
  * Print on windows systems using winspool
  */
 pub fn print(printer_system_name: &str, file_path: &str, job_name: Option<&str>) -> Result<bool, String> {
-    //.arg("-print-settings").arg("paper=A4")
-    let mut command  = Command::new("src\\windows\\lib\\SumatraPDF-3.5.2-64.exe");
-    let status = command.arg("-silent")
-    .arg("-print-to")
-    .arg(printer_system_name)
-    .arg(file_path).spawn();
- 
+    let dir: std::path::PathBuf = env::temp_dir();
+   
+    let print = format!("-print-to {}", printer_system_name).to_owned();
+    let shell_command = format!("{}SumatraPDF.exe {} -silent {}", dir.display(), print, file_path);
+
+    //println!("{}", shell_command);
+    let status = Command::new("powershell").args([shell_command]).spawn();
+
     return if status.is_ok() {
         Result::Ok(true)
     } else {
         Result::Err("failure to send document to printer".to_string())
     }
+
+    //let mut print: String = "-print-to-default".to_owned();    
+    //.arg("-print-settings").arg("paper=A4")
+
+    /*let mut command  = Command::new("src\\windows\\lib\\SumatraPDF-3.5.2-64.exe");
+    let status = command.arg("-silent")
+    .arg("-print-to").arg(printer_system_name).arg(file_path).spawn();
+ 
+    return if status.is_ok() {
+        Result::Ok(true)
+    } else {
+        Result::Err("failure to send document to printer".to_string())
+    }*/
 
     /*let result = &winspool::print_file(printer_system_name, file_path, job_name);
     return if result {
@@ -148,5 +162,3 @@ pub fn get_job(_printer_system_name: &str, _job_id: i32) -> Vec<PrintJob> {
 
    return jobs;
 } */
-
-
