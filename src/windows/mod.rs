@@ -42,9 +42,12 @@ pub fn get_printers() -> Vec<Printer> {
  */
 pub fn print(printer_system_name: &str, file_path: &str, job_name: Option<&str>) -> Result<bool, String> {
     let dir: std::path::PathBuf = env::temp_dir();
-    let print = format!("-print-to {}", printer_system_name).to_owned();
-    let status = Command::new(&format!("{}SumatraPDF.exe", dir.display()))
-    .args(&[print, "-silent", file_path])
+    let sumatra_pdf_path = format!("{}SumatraPDF.exe", dir.display());
+    let status = Command::new(&sumatra_pdf_path)
+    .arg("-silent")
+    .arg("-print-to")
+    .arg(printer_system_name)
+    .arg(file_path)
     .spawn();
 
     return if status.is_ok() {
