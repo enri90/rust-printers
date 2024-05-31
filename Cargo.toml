@@ -1,6 +1,6 @@
 [package]
 name = "printers"
-version = "2.0.4"
+version = "2.0.5"
 authors = ["Tales Luna <tales.ferreira.luna@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -13,6 +13,8 @@ readme = "README.md"
 
 [dependencies]
 libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 
 [lib]
 name = "printers"

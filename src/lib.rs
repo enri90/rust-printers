@@ -26,7 +26,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Printer and Job control
 pub mod printer;
+pub mod printer_job;
 pub mod shared;
+
+use printer_job::PrintJob;
 
 #[cfg(target_family = "unix")]
 mod unix;
@@ -50,24 +53,25 @@ pub fn print(printer_name: &str, buffer: &[u8], job_name: Option<&str>) -> Resul
 
     if save.is_err() {
         let error = save.err().unwrap();
-        return Err(error.to_string())
+        return Err(error.to_string());
     }
 
     return print_file(printer_name, tmp_file_path.to_str().unwrap(), job_name);
-
 }
 
 /**
  * Print specific file on a specific printer
  */
-pub fn print_file(printer_name: &str, file_path: &str, job_name: Option<&str>) -> Result<bool, String> {
-
+pub fn print_file(
+    printer_name: &str,
+    file_path: &str,
+    job_name: Option<&str>,
+) -> Result<bool, String> {
     #[cfg(target_family = "unix")]
     return unix::print(printer_name, file_path, job_name);
 
     #[cfg(target_family = "windows")]
     return windows::print(printer_name, file_path, job_name);
-
 }
 
 /**
@@ -97,9 +101,7 @@ pub fn get_printer_by_name(name: &str) -> Option<printer::Printer> {
     return opt.cloned();
 }
 
-
-
-pub fn print_queue(printer_system_name: &str, myjobs: i32, whichjobs: i32) -> Vec<printer::PrintJob>  {
+pub fn print_queue(printer_system_name: &str, myjobs: i32, whichjobs: i32) -> Vec<PrintJob> {
     #[cfg(target_family = "unix")]
     return unix::print_queue(printer_system_name, myjobs, whichjobs);
 
@@ -113,15 +115,13 @@ pub fn cancel_job(printer_system_name: &str, job_id: i32) -> bool {
 
     #[cfg(target_family = "windows")]
     return windows::cancel_job(printer_system_name, job_id);
-}   
-
+}
 
 pub fn get_last_error() -> String {
     #[cfg(target_family = "unix")]
     return unix::get_last_error();
 
-   #[cfg(target_family = "windows")]
-   return "".to_string()
-   // return windows::get_last_error();
-   
+    #[cfg(target_family = "windows")]
+    return "".to_string();
+    // return windows::get_last_error();
 }

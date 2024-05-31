@@ -6,7 +6,6 @@ use std::{
 
 use crate::shared::interface::{JobGetters, PlatformPrinterGetters};
 
-
 /**
  * The CUPS destination struct (cups_job_s)
  * https://www.cups.org/doc/cupspm.html#cups_job_s
@@ -14,37 +13,36 @@ use crate::shared::interface::{JobGetters, PlatformPrinterGetters};
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct CupsJobS {
-    pub id: i32,			        /* The job ID */
-    pub dest: *mut c_char,			/* Printer or class name */
-    pub title: *mut c_char,			/* Title/job name */
-    pub user: *mut c_char,			/* User that submitted the job */
-    pub format: *mut c_char,		/* Document format */
-    pub state: c_char,		        /* Job state */
-    pub size: c_int,			    /* Size in kilobytes */
-    pub priority: c_int,		    /* Priority (1-100) */
-    pub completed_time: i64,		/* Time the job was completed */
-    pub creation_time: i64,		    /* Time the job was created */
-    pub processing_time: i64,	    /* Time the job was processed */
+    pub id: i32,              /* The job ID */
+    pub dest: *mut c_char,    /* Printer or class name */
+    pub title: *mut c_char,   /* Title/job name */
+    pub user: *mut c_char,    /* User that submitted the job */
+    pub format: *mut c_char,  /* Document format */
+    pub state: c_char,        /* Job state */
+    pub size: c_int,          /* Size in kilobytes */
+    pub priority: c_int,      /* Priority (1-100) */
+    pub completed_time: i64,  /* Time the job was completed */
+    pub creation_time: i64,   /* Time the job was created */
+    pub processing_time: i64, /* Time the job was processed */
 }
 
 impl JobGetters for CupsJobS {
     fn get_id(&self) -> String {
         return self.id.to_string();
-    }  
+    }
 
     fn get_dest(&self) -> String {
         if self.dest.is_null() {
-            return "".to_string()
-        } 
-     
-       let c_str = unsafe { CStr::from_ptr(self.dest.clone()) };
-       return c_str.to_str().unwrap_or("").to_string();
+            return "".to_string();
+        }
+
+        let c_str = unsafe { CStr::from_ptr(self.dest.clone()) };
+        return c_str.to_str().unwrap_or("").to_string();
     }
 
     fn get_title(&self) -> String {
-       
         if self.title.is_null() {
-            return "".to_string()
+            return "".to_string();
         }
 
         let c_str = unsafe { CStr::from_ptr(self.title.clone()) };
@@ -53,7 +51,7 @@ impl JobGetters for CupsJobS {
 
     fn get_user(&self) -> String {
         if self.user.is_null() {
-            return "".to_string()
+            return "".to_string();
         }
 
         let c_str = unsafe { CStr::from_ptr(self.user.clone()) };
@@ -62,7 +60,7 @@ impl JobGetters for CupsJobS {
 
     fn get_format(&self) -> String {
         if self.format.is_null() {
-            return "".to_string()
+            return "".to_string();
         }
 
         let c_str = unsafe { CStr::from_ptr(self.format.clone()) };
@@ -80,7 +78,7 @@ impl JobGetters for CupsJobS {
     fn get_priority(&self) -> String {
         return self.priority.to_string();
     }
-   
+
     fn get_completed_time(&self) -> String {
         return self.completed_time.to_string();
     }
@@ -92,9 +90,7 @@ impl JobGetters for CupsJobS {
     fn get_processing_time(&self) -> String {
         return self.processing_time.to_string();
     }
-
 }
-
 
 /**
  * The CUPS option struct (cups_option_s)
@@ -206,7 +202,6 @@ impl PlatformPrinterGetters for CupsDestT {
     fn get_state(&self) -> String {
         return self.get_option_by_key("printer-state");
     }
-    
 }
 
 #[link(name = "cups")]
@@ -276,23 +271,19 @@ pub fn free_dests(dests: &Vec<&CupsDestT>) {
     unsafe { cupsFreeDests(1 as i32, *ptr) };
 }
 
-
-
 /**
  * Ottiene la coda di stampa e restituisce una lista di lavori di stampa
  */
-pub fn get_print_queue(printer_system_name: &str, myjobs: i32, whichjobs: i32) -> Vec<&'static CupsJobS> {
+pub fn get_print_queue(
+    printer_system_name: &str,
+    myjobs: i32,
+    whichjobs: i32,
+) -> Vec<&'static CupsJobS> {
     let mut jobs_ptr: *mut CupsJobS = ptr::null_mut();
     let printer_name = CString::new(printer_system_name).unwrap();
     //println!("printer_name: {}", printer_name.to_str().unwrap());
-    let number_of_jobs =  unsafe {
-         cupsGetJobs(
-            &mut jobs_ptr,
-            printer_name.as_ptr(),
-            myjobs,
-            whichjobs
-        )
-    };
+    let number_of_jobs =
+        unsafe { cupsGetJobs(&mut jobs_ptr, printer_name.as_ptr(), myjobs, whichjobs) };
 
     let mut jobs: Vec<&CupsJobS> = Vec::new();
     if number_of_jobs > 0 {
@@ -303,14 +294,14 @@ pub fn get_print_queue(printer_system_name: &str, myjobs: i32, whichjobs: i32) -
         }
     }
 
-    return jobs
+    return jobs;
 }
 
 /**
  * Free the allocated memory for jobs
  */
 pub fn free_jobs(jobs: &Vec<&CupsJobS>) {
-    println!("jobs len: {:?}", jobs.len());
+    //println!("jobs len: {:?}", jobs.len());
     let ptr = jobs.as_ptr();
     unsafe { cupsFreeJobs(jobs.len() as i32, *ptr) };
 }
@@ -324,8 +315,7 @@ pub fn cancel_job(printer_system_name: &str, job_id: i32) -> bool {
     }
     println!("result cancel_job: {}", result);
     return result != 0;
-}   
-
+}
 
 pub fn get_last_error() -> String {
     let error = unsafe { cupsLastErrorString() };
